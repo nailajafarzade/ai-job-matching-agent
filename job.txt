@@ -1,0 +1,19 @@
+Junior Java Backend Developer
+
+We are looking for a Junior Java Backend Developer.
+
+Requirements:
+- Basic knowledge of Java
+- Understanding of OOP principles
+- Knowledge of Spring Boot
+- Basic SQL and relational databases
+- Understanding of REST APIs
+- Knowledge of Git
+- Problem-solving skills
+
+Experience: 0–1 years.
+
+Location: Remote.
+Candidates from Azerbaijan are welcome.
+
+This is a junior-level opportunity for developers interested in backend engineering.

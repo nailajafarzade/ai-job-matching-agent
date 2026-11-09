@@ -1,0 +1,103 @@
+# skills.yaml — vocabulary used to RECOGNIZE skills in a job text.
+# It is NOT a list of my skills. My skills are only in profile.yaml.
+# A skill in this file that is missing from profile.yaml is simply
+# "required by the job, not mine" and shows up in missing_skills.
+#
+# canonical : the one name used everywhere
+# synonyms  : only true alternative names (same technology). Case-insensitive.
+# related   : connected technologies that are DIFFERENT skills. They never
+#             count as a match. Later they may be used for explanations only.
+#             One direction only: "FastAPI related Python" is enough.
+# weight    : importance in scoring (1 = small, 3 = core)
+#
+# Example: "Spring" -> Spring Framework (not Spring Boot).
+# Note: "DSA" (data structures and algorithms) names two skills. The analyzer
+# should later emit both Data Structures and Algorithms for it.
+
+skills:
+  # ---- languages ----
+  - {canonical: Python,     category: language, weight: 3, synonyms: [python3, python 3], related: []}
+  - {canonical: Java,       category: language, weight: 3, synonyms: [java 17, java 21, core java], related: [JDK]}
+  - {canonical: JavaScript, category: language, weight: 2, synonyms: [js, ecmascript, es6], related: [TypeScript]}
+  - {canonical: TypeScript, category: language, weight: 2, synonyms: [], related: [JavaScript]}
+  - {canonical: SQL,        category: language, weight: 2, synonyms: [], related: [PostgreSQL, MySQL]}
+  - {canonical: HTML,       category: language, weight: 1, synonyms: [html5], related: [CSS]}
+  - {canonical: CSS,        category: language, weight: 1, synonyms: [css3], related: [HTML]}
+  - {canonical: Bash,       category: language, weight: 1, synonyms: [shell scripting, bash scripting], related: [Linux]}
+
+  # ---- frameworks ----
+  - {canonical: FastAPI,          category: framework, weight: 3, synonyms: [fast api], related: [Python]}
+  - {canonical: Spring Boot,      category: framework, weight: 3, synonyms: [springboot, spring-boot], related: [Spring Framework, Java]}
+  - {canonical: Spring Framework, category: framework, weight: 2, synonyms: [spring, spring core], related: [Spring Boot]}
+  - {canonical: Spring MVC,       category: framework, weight: 1, synonyms: [], related: [Spring Framework]}
+  - {canonical: Spring Security,  category: framework, weight: 1, synonyms: [], related: [Spring Boot]}
+  - {canonical: Spring Data,      category: framework, weight: 1, synonyms: [spring data jpa], related: [Spring Boot]}
+  - {canonical: React,            category: framework, weight: 2, synonyms: [react.js, reactjs], related: [JavaScript]}
+  - {canonical: Tailwind CSS,     category: framework, weight: 1, synonyms: [tailwind, tailwindcss], related: [CSS]}
+  - {canonical: Django,           category: framework, weight: 2, synonyms: [], related: [Python]}
+  - {canonical: Flask,            category: framework, weight: 2, synonyms: [], related: [Python]}
+  - {canonical: Node.js,          category: framework, weight: 2, synonyms: [node, nodejs], related: [JavaScript]}
+
+  # ---- backend concepts ----
+  - {canonical: REST API,             category: backend, weight: 3, synonyms: [rest, restful, rest apis, restful api, restful apis], related: []}
+  - {canonical: GraphQL,              category: backend, weight: 1, synonyms: [], related: [REST API]}
+  - {canonical: Microservices,        category: backend, weight: 2, synonyms: [microservice, micro-services], related: []}
+  - {canonical: JWT,                  category: backend, weight: 1, synonyms: [json web token, json web tokens], related: []}
+  - {canonical: OOP,                  category: backend, weight: 2, synonyms: [object-oriented programming, object oriented programming, object-oriented], related: []}
+  - {canonical: SOLID,                category: backend, weight: 1, synonyms: [solid principles], related: [Design Patterns]}
+  - {canonical: Design Patterns,      category: backend, weight: 1, synonyms: [design pattern], related: [SOLID]}
+  - {canonical: Clean Architecture,   category: backend, weight: 1, synonyms: [], related: [Hexagonal Architecture]}
+  - {canonical: Hexagonal Architecture, category: backend, weight: 1, synonyms: [ports and adapters], related: [Clean Architecture]}
+  - {canonical: Algorithms,           category: backend, weight: 1, synonyms: [algorithm], related: [Data Structures]}
+  - {canonical: Data Structures,      category: backend, weight: 1, synonyms: [data structure], related: [Algorithms]}
+  - {canonical: Kafka,                category: backend, weight: 2, synonyms: [apache kafka], related: [RabbitMQ]}
+  - {canonical: RabbitMQ,             category: backend, weight: 2, synonyms: [rabbit mq], related: [Kafka]}
+
+  # ---- databases ----
+  - {canonical: PostgreSQL, category: database, weight: 3, synonyms: [postgres], related: [SQL]}
+  - {canonical: MySQL,      category: database, weight: 2, synonyms: [], related: [SQL]}
+  - {canonical: MongoDB,    category: database, weight: 2, synonyms: [mongo], related: []}
+  - {canonical: Redis,      category: database, weight: 2, synonyms: [], related: []}
+
+  # ---- devops ----
+  - {canonical: Docker,           category: devops, weight: 2, synonyms: [], related: [Docker Compose, Dockerfile, Containerization]}
+  - {canonical: Docker Compose,   category: devops, weight: 1, synonyms: [docker-compose], related: [Docker]}
+  - {canonical: Dockerfile,       category: devops, weight: 1, synonyms: [], related: [Docker]}
+  - {canonical: Containerization, category: devops, weight: 1, synonyms: [containers, containerisation, containerized applications], related: [Docker, Kubernetes]}
+  - {canonical: Kubernetes,       category: devops, weight: 2, synonyms: [k8s], related: [Docker, Containerization]}
+  - {canonical: CI/CD,            category: devops, weight: 1, synonyms: [ci cd, cicd, ci-cd, ci/cd pipeline, ci/cd pipelines], related: [Jenkins, GitHub Actions, GitLab CI]}
+  - {canonical: Jenkins,          category: devops, weight: 1, synonyms: [], related: [CI/CD]}
+  - {canonical: GitHub Actions,   category: devops, weight: 1, synonyms: [gh actions], related: [CI/CD, GitHub]}
+  - {canonical: GitLab CI,        category: devops, weight: 1, synonyms: [gitlab-ci], related: [CI/CD]}
+  - {canonical: Linux,            category: devops, weight: 1, synonyms: [gnu/linux], related: [Bash]}
+
+  # ---- cloud ----
+  - {canonical: AWS,   category: cloud, weight: 2, synonyms: [amazon web services], related: []}
+  - {canonical: GCP,   category: cloud, weight: 1, synonyms: [google cloud, google cloud platform], related: []}
+  - {canonical: Azure, category: cloud, weight: 1, synonyms: [microsoft azure], related: []}
+
+  # ---- tools ----
+  - {canonical: JDK,     category: tools, weight: 1, synonyms: [java development kit], related: [Java]}
+  - {canonical: Git,     category: tools, weight: 1, synonyms: [], related: [GitHub]}
+  - {canonical: GitHub,  category: tools, weight: 1, synonyms: [], related: [Git, GitHub Actions]}
+  - {canonical: Postman, category: tools, weight: 1, synonyms: [], related: [REST API]}
+
+  # ---- AI / ML ----
+  - {canonical: LLM,                category: ai, weight: 3, synonyms: [llms, large language model, large language models], related: [Generative AI]}
+  - {canonical: Generative AI,      category: ai, weight: 2, synonyms: [genai, gen ai, generative artificial intelligence], related: [LLM]}
+  - {canonical: Prompt Engineering, category: ai, weight: 2, synonyms: [prompt design], related: [LLM]}
+  - {canonical: RAG,                category: ai, weight: 2, synonyms: [retrieval augmented generation, retrieval-augmented generation], related: [LLM]}
+  - {canonical: LangChain,          category: ai, weight: 2, synonyms: [], related: [LangGraph, LLM]}
+  - {canonical: LangGraph,          category: ai, weight: 1, synonyms: [], related: [LangChain]}
+  - {canonical: Ollama,             category: ai, weight: 1, synonyms: [], related: [LLM]}
+  - {canonical: Gemini API,         category: ai, weight: 1, synonyms: [], related: [LLM]}
+  - {canonical: OpenAI API,         category: ai, weight: 1, synonyms: [openai, openai api, open ai api], related: [LLM]}
+  - {canonical: Machine Learning,   category: ai, weight: 3, synonyms: [ml], related: [Deep Learning, scikit-learn]}
+  - {canonical: Deep Learning,      category: ai, weight: 2, synonyms: [], related: [Neural Networks, Machine Learning]}
+  - {canonical: Neural Networks,    category: ai, weight: 1, synonyms: [neural network], related: [Deep Learning]}
+  - {canonical: PyTorch,            category: ai, weight: 2, synonyms: [], related: [Deep Learning]}
+  - {canonical: TensorFlow,         category: ai, weight: 2, synonyms: [], related: [Deep Learning]}
+  - {canonical: scikit-learn,       category: ai, weight: 2, synonyms: [sklearn], related: [Machine Learning]}
+  - {canonical: NLP,                category: ai, weight: 2, synonyms: [natural language processing], related: [LLM]}
+  - {canonical: Pandas,             category: ai, weight: 1, synonyms: [], related: [Python, NumPy]}
+  - {canonical: NumPy,              category: ai, weight: 1, synonyms: [], related: [Python, Pandas]}

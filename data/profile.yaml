@@ -1,0 +1,146 @@
+# profile.yaml — the single source of truth for the agent.
+# RULE: write only what is really true. The agent never uses anything
+# that is not in this file (no invented skills, experience or dates).
+# When you change this file, raise `version` by 1.
+#
+# Two things are kept apart on purpose:
+#   skills    = what I can do (level: hands_on | studied)
+#   projects  = what a project really used (tech_confirmed)
+# Having a skill does not prove a project used it.
+
+version: 3
+
+person:
+  name: Naila Jafarzade
+  email: nailajafarzade@gmail.com
+  github: github.com/nailajafarzade
+  linkedin: linkedin.com/in/naila-jafarzade-589a5338b
+
+summary: >
+  Second-year IT student with backend experience in Java Spring Boot and
+  Python FastAPI. Completed a Java Backend Developer internship. Worked on
+  AI projects: a local LLM with Ollama, and an OpenAI integration in a team
+  project. Wants to grow in backend and AI engineering.
+
+education:
+  - institution: National Aviation Academy
+    faculty: Aerospace
+    program: IT English section      # official program name not confirmed
+    year: 2
+    gpa: "98/100"
+
+certifications:
+  - name: Java Backend Development (with Honors)
+    issuer: JET Academy
+    note: about 6 months
+  - name: Python
+    issuer: Baku IT Academy
+    note: certificate received, final exam 92%
+
+experience:
+  - title: Java Backend Developer Intern
+    organization: Baku Design Academy
+    type: internship
+    status: completed
+    stack_confirmed: [Java, Spring Boot]
+    work:
+      - Backend development on the Voyanta AI travel planning MVP
+      - Worked with the OpenAI integration (not built independently)
+    projects: [Voyanta]
+    # dates are not confirmed, so none are written here
+
+# Roles we search for. priority: high | medium | secondary
+target_roles:
+  - {title: Java Backend Developer,   priority: high}
+  - {title: Python Backend Developer, priority: high}
+  - {title: AI Engineer Intern,       priority: high}
+  - {title: Junior AI Engineer,       priority: high}
+  - {title: Machine Learning Intern,  priority: medium}
+  - {title: Full Stack Developer,     priority: secondary}
+
+# Used by the hard filter (stage 1 of matching).
+preferences:
+  max_years_required: 2              # reject jobs that require more than this
+  reject_seniority: [senior, lead, principal, staff, manager]
+  home_country: Azerbaijan
+  excluded_job_countries: [India]    # the only excluded country
+  preferred_locations: [Baku, Azerbaijan]
+  remote:
+    ok: true
+    # Open to any country, if the job accepts remote workers from Azerbaijan.
+    # A remote job is not enough: its country eligibility is checked separately.
+    # If eligibility is unknown, the job is flagged for manual review (not rejected).
+    require_country_eligibility: true
+    # Planned job fields (added in the job schema later):
+    #   eligible_countries, remote_work_eligibility, location_restrictions
+
+# Skills I can really show. Anything missing here is "not my skill".
+skills:
+  - {name: Python,             level: hands_on}
+  - {name: Java,               level: hands_on}
+  - {name: JavaScript,         level: hands_on}
+  - {name: TypeScript,         level: hands_on}
+  - {name: SQL,                level: hands_on}
+  - {name: HTML,               level: hands_on}
+  - {name: CSS,                level: hands_on}
+  - {name: FastAPI,            level: hands_on}
+  - {name: Spring Boot,        level: hands_on}
+  - {name: REST API,           level: hands_on}
+  - {name: Microservices,      level: hands_on}
+  - {name: PostgreSQL,         level: hands_on}
+  - {name: MySQL,              level: hands_on}
+  - {name: MongoDB,            level: hands_on}
+  - {name: Redis,              level: hands_on}
+  - {name: Docker,             level: hands_on}
+  - {name: Docker Compose,     level: hands_on}
+  - {name: Git,                level: hands_on}
+  - {name: GitHub,             level: hands_on}
+  - {name: CI/CD,              level: hands_on}
+  - {name: Linux,              level: hands_on}
+  - {name: Postman,            level: hands_on}
+  - {name: JWT,                level: hands_on}
+  - {name: React,              level: hands_on}
+  - {name: Tailwind CSS,       level: hands_on}
+  - {name: OOP,                level: hands_on}
+  - {name: SOLID,              level: hands_on}
+  - {name: Design Patterns,    level: hands_on}
+  - {name: Clean Architecture, level: hands_on}
+  - {name: Algorithms,         level: hands_on}
+  - {name: Ollama,             level: hands_on}
+  - {name: Prompt Engineering, level: hands_on}   # used in Virtual Student
+  - {name: Gemini API,         level: hands_on}
+  - {name: AWS,                level: hands_on}   # used; specific services not confirmed
+  - {name: GCP,                level: hands_on}   # used; specific services not confirmed
+  - {name: Azure,              level: hands_on}   # used; specific services not confirmed
+  - {name: OpenAI API,         level: studied}    # got to know the integration in Voyanta; not built alone
+  - {name: LLM,                level: studied}
+  - {name: RAG,                level: studied}
+  - {name: LangChain,          level: studied}
+  - {name: LangGraph,          level: studied}
+
+# Texts for the semantic score + the tech each project really used.
+# tech_confirmed is about the project only. It does not change skill levels.
+projects:
+  - name: MoneyQuest
+    role: Backend Developer
+    text: >
+      Backend project with a microservices architecture, built with Java,
+      Spring Boot, PostgreSQL, Redis, Docker and REST APIs.
+    tech_confirmed: [Java, Spring Boot, PostgreSQL, Redis, Docker, REST API, Microservices]
+
+  - name: Virtual Student
+    role: Backend / AI Project Developer
+    text: >
+      AI educational simulation with a virtual student. Java Spring Boot
+      backend, Python FastAPI AI service, React and TypeScript frontend,
+      PostgreSQL database, and a local LLM (Llama 3.2 with Ollama).
+    tech_confirmed: [Java, Spring Boot, Python, FastAPI, React, TypeScript, PostgreSQL, Ollama, Llama 3.2, Prompt Engineering]
+    note: OpenAI was not used.
+
+  - name: Voyanta
+    role: Backend Developer
+    text: >
+      AI-powered travel planning MVP with a Java Spring Boot backend and
+      OpenAI integration, developed as part of a remote development team.
+    tech_confirmed: [Java, Spring Boot, OpenAI API]
+    note: Team project. The OpenAI integration was not built independently.

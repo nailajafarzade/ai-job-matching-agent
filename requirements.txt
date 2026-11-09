@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+pydantic
+pyyaml
+sentence-transformers
+numpy
+pytest
+httpx
