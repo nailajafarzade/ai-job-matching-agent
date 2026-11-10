@@ -1,0 +1,1 @@
+We are looking for a junior Java backend developer. Requirements include Java, Spring Boot, PostgreSQL, and REST API development. This role is suitable for a new graduate and accepts applicants from Azerbaijan.

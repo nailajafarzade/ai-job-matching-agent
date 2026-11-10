@@ -1,0 +1,3 @@
+title,company,description_file,country,remote_type,eligible_countries,label
+EXAMPLE - Junior Java Backend Developer,EXAMPLE ONLY,data/jobs/example_apply.txt,,remote,Azerbaijan,apply
+EXAMPLE - Senior Product Manager,EXAMPLE ONLY,data/jobs/example_skip.txt,,remote,Azerbaijan,skip
