@@ -26,7 +26,7 @@ explained.
 
 | # | Stage | Status |
 |---|-------|--------|
-| 1 | Manual intake + job analysis + matching | in progress (profile, models, analyzer and matcher done; pipeline and API next) |
+| 1 | Manual intake + job analysis + matching | API done, tuning next |
 | 2 | CV selection + CV tailoring | planned |
 | 3 | Ollama + cover letter + reviewer | planned |
 | 4 | Dashboard + human approval + tracker | planned |
@@ -39,8 +39,37 @@ explained.
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload    # then open http://127.0.0.1:8000/docs
+uvicorn app.main:app --reload
 ```
+
+The API listens at `http://127.0.0.1:8000`. Open Swagger at
+`http://127.0.0.1:8000/docs` to try the endpoints.
+
+### API
+
+Paste a job post with `POST /jobs`:
+
+```json
+{
+  "title": "Junior Java Backend Developer",
+  "company": "Example Tech",
+  "description": "We are looking for a junior Java developer. Requirements include Java, Spring Boot, and PostgreSQL. Build backend services with the team.",
+  "remote_type": "remote",
+  "remote_work_eligibility": "eligible",
+  "eligible_countries": ["Azerbaijan"]
+}
+```
+
+Stage 1 endpoints:
+
+- `POST /jobs` — save, analyze and match a job; duplicates return the existing job.
+- `GET /jobs` — list jobs; optional `decision`, `min_score`, `limit` and `offset` filters.
+- `GET /jobs/{id}` — get a job with its latest analysis and match.
+- `GET /jobs/{id}/matches` — compare the job's full match history.
+- `POST /jobs/{id}/rematch` — add a match using the active profile.
+- `GET /profile` — show the active profile summary.
+- `POST /profile/reload` — load profile changes from `data/profile.yaml`.
+- `GET /health` — check API and matching runtime status.
 
 ## Folders
 
@@ -85,7 +114,8 @@ missing skills and the reason.
 Rejected jobs have no scores, only `reject_reasons`. Unknown remote eligibility
 gives `needs_review`, not a silent reject.
 
-Run the tests: `python -m pytest`
+Run the fast tests: `python -m pytest`. The real embedding model tests are
+excluded by default; run them with `python -m pytest -m real_model`.
 
 ## Analyzer (rules only, no model)
 
@@ -123,6 +153,23 @@ minimum years, seniority.
 The numbers that turn cosine similarity into 0-100 (`SEMANTIC_FLOOR/CEIL`,
 `TITLE_FLOOR/CEIL` in `config.py`) are a first guess. Tune them with real jobs.
 
+## How I tune the scores
+
+Replace the example rows in `data/labeled_jobs.csv` with jobs I labeled `apply`
+or `skip`, and save each full job description under `data/jobs/`. Keep the CSV
+columns shown in the template; separate multiple `eligible_countries` with
+semicolons. Then run:
+
+```bash
+python -m scripts.evaluate
+```
+
+The report compares each label with the decision and score parts, counts apply
+jobs that were queued or need review and skip jobs that were queued, and shows
+average scores and disagreements. It only reports results; it never trains or
+changes the scores automatically. The real embedding model is loaded when the
+script runs (the first run may download it).
+
 Try it on a real job post:
 
 ```bash
@@ -130,7 +177,7 @@ python -m scripts.try_match job.txt --title "Junior Java Developer" --remote --e
 ```
 
 Tests use a small fake embedder, so they are fast. `tests/test_real_embedder.py`
-uses the real model and is skipped when the model is not available.
+uses the real model and is marked `real_model`, so it only runs when selected.
 
 ## Job fields for remote eligibility
 

@@ -2,6 +2,8 @@
 (no internet, first download not done). Run it on your own computer."""
 import pytest
 
+pytestmark = pytest.mark.real_model
+
 
 @pytest.fixture(scope="module")
 def real_embedder():
