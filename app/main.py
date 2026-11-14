@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.api import collectors as collectors_api
 from app.api import applications as applications_api
+from app.api import stats as stats_api
 from app.api import jobs, profile
 from app.collectors.base import JobCollector
 from app.collectors.remoteok import RemoteOKCollector
@@ -17,6 +18,8 @@ from app.config import DATABASE_URL, PROFILE_PATH
 from app.db.session import init_db, make_engine
 from app.matching.embeddings import Embedder, get_embedder
 from app.services.runtime import build_documents, build_pipeline
+from app.web import routes as web_routes
+from fastapi.staticfiles import StaticFiles
 
 
 def create_app(
@@ -61,6 +64,13 @@ def create_app(
     application.include_router(profile.router)
     application.include_router(applications_api.router)
     application.include_router(collectors_api.router)
+    application.include_router(stats_api.router)
+    application.include_router(web_routes.router)
+    application.mount(
+        "/ui/static",
+        StaticFiles(directory=str(Path(__file__).parent / "web" / "static")),
+        name="ui-static",
+    )
 
     @application.get("/health", summary="Check API and matching runtime health")
     def health(request: Request) -> dict[str, int | str]:

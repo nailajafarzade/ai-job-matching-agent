@@ -29,7 +29,7 @@ explained.
 | 1 | Foundation + job analysis + matching | done |
 | 2 | Automatic public API collectors | done |
 | 3 | CV selection + cover letter + reviewer | done |
-| 4 | Human approval + tracker + dashboard | planned |
+| 4 | Human approval + tracker + dashboard | done |
 | 5 | Manual application package + safe email + GitHub polish | planned |
 
 ## Stage 1 setup
@@ -125,6 +125,43 @@ issues yourself; this phase does not approve or send applications.
 Run the API as shown in Stage 1 setup, then submit and prepare a job using the
 endpoints above. The selected CV identifier and selection reason, letter, and
 review issues are returned by the prepare endpoint.
+
+## Stage 4 approvals and dashboard
+
+Start the API with `uvicorn app.main:app --reload`, then open
+`http://127.0.0.1:8000/ui`. The dashboard lists jobs by final score, shows the
+match explanation and skills, and links to the original post. Open a job to
+prepare its application, review the CV choice and letter, approve or skip it,
+change its status, and view its status history. `/ui/stats` shows application
+counts, latest match decisions, average final score, and applications per week.
+
+The JSON API provides:
+
+- `POST /applications/{id}/approve` and `POST /applications/{id}/skip`.
+- `POST /applications/{id}/status` to record a later status and optional note.
+- `GET /applications` with optional `status`, `limit`, and `offset` filters.
+- `GET /applications/{id}/events` and `GET /stats`.
+
+Illegal status changes and refused approvals return HTTP 409 with the reasons.
+Approval requires a reviewed letter, a selected CV, and—for `needs_review`
+jobs—`eligibility_checked=true` after the owner checks the eligibility
+information.
+
+Application status transitions are:
+
+| Current status | Allowed next statuses |
+|----------------|-----------------------|
+| `prepared` | `approved`, `skipped` |
+| `approved` | `package_ready`, `sent`, `skipped`, `prepared` |
+| `package_ready` | `sent`, `skipped` |
+| `sent` | `replied`, `interview`, `rejected`, `withdrawn` |
+| `replied` | `interview`, `rejected`, `withdrawn` |
+| `interview` | `rejected`, `withdrawn` |
+| `skipped` | `prepared` |
+| `rejected`, `withdrawn` | no further transitions |
+
+Every status change is recorded in `application_events`. The application is
+never sent automatically; approval is a human decision.
 
 ## Folders
 

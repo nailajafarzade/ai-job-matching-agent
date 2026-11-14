@@ -9,3 +9,4 @@ numpy
 pytest
 httpx
 jinja2
+python-multipart

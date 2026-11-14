@@ -1,0 +1,15 @@
+{% extends "base.html.j2" %}
+{% block title %}Statistics · Job Agent{% endblock %}
+{% block content %}
+<h2>Statistics</h2>
+<section><h3>Applications by status</h3><table class="compact"><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
+{% for status, count in stats.applications_by_status.items() %}<tr><td>{{ status }}</td><td>{{ count }}</td></tr>{% endfor %}
+</tbody></table></section>
+<section><h3>Latest matches by decision</h3><table class="compact"><thead><tr><th>Decision</th><th>Count</th></tr></thead><tbody>
+{% for decision, count in stats.matches_by_decision.items() %}<tr><td>{{ decision }}</td><td>{{ count }}</td></tr>{% endfor %}
+</tbody></table></section>
+<p><strong>Average final score:</strong> {% if stats.average_final_score is not none %}{{ "%.2f"|format(stats.average_final_score) }}{% else %}No scored matches{% endif %}</p>
+<section><h3>Applications per week</h3><table class="compact"><thead><tr><th>ISO week</th><th>Count</th></tr></thead><tbody>
+{% for item in stats.applications_per_week %}<tr><td>{{ item.week }}</td><td>{{ item.count }}</td></tr>{% else %}<tr><td colspan="2">No applications yet.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}
