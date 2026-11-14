@@ -3,10 +3,15 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI, Request
 from sqlalchemy.orm import sessionmaker
 
+from app.api import collectors as collectors_api
 from app.api import jobs, profile
+from app.collectors.base import JobCollector
+from app.collectors.remoteok import RemoteOKCollector
+from app.collectors.remotive import RemotiveCollector
 from app.config import DATABASE_URL, PROFILE_PATH
 from app.db.session import init_db, make_engine
 from app.matching.embeddings import Embedder, get_embedder
@@ -18,10 +23,12 @@ def create_app(
     database_url: str = DATABASE_URL,
     profile_path: Path = PROFILE_PATH,
     min_score: float | None = None,
+    collectors: dict[str, JobCollector] | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(runtime_app: FastAPI) -> AsyncIterator[None]:
         engine = make_engine(database_url)
+        collector_client = None
         try:
             init_db(engine)
             runtime_app.state.engine = engine
@@ -30,13 +37,24 @@ def create_app(
             runtime_app.state.profile_path = profile_path
             runtime_app.state.min_score = min_score
             runtime_app.state.pipeline = build_pipeline(profile_path, runtime_app.state.embedder, min_score)
+            if collectors is None:
+                collector_client = httpx.Client()
+                runtime_app.state.collectors = {
+                    "remotive": RemotiveCollector(collector_client),
+                    "remoteok": RemoteOKCollector(collector_client),
+                }
+            else:
+                runtime_app.state.collectors = collectors
             yield
         finally:
+            if collector_client is not None:
+                collector_client.close()
             engine.dispose()
 
     application = FastAPI(title="Job Agent", lifespan=lifespan)
     application.include_router(jobs.router)
     application.include_router(profile.router)
+    application.include_router(collectors_api.router)
 
     @application.get("/health", summary="Check API and matching runtime health")
     def health(request: Request) -> dict[str, int | str]:

@@ -1,0 +1,45 @@
+{
+  "jobs": [
+    {
+      "id": 101,
+      "url": "https://remotive.com/remote-jobs/software-dev/java-backend-one",
+      "title": "Junior Java Backend Developer",
+      "company_name": "Example One",
+      "category": "Software Development",
+      "job_type": "Full-time",
+      "publication_date": "2026-10-01",
+      "candidate_required_location": "Worldwide",
+      "description": "<h2>Requirements</h2><ul><li>Java</li><li>Spring Boot</li></ul><p>To apply, email your CV to apply@example.com.</p>"
+    },
+    {
+      "id": 102,
+      "url": "https://remotive.com/remote-jobs/software-dev/python-two",
+      "title": "Python Backend Developer",
+      "company_name": "Example Two",
+      "category": "Software Development",
+      "job_type": "Contract",
+      "publication_date": "2026-10-02",
+      "candidate_required_location": "Germany, Poland / Spain",
+      "description": "<p>Build reliable APIs with Python and FastAPI for customer products.</p>"
+    },
+    {
+      "id": 103,
+      "url": "https://remotive.com/remote-jobs/software-dev/unclear-three",
+      "title": "Backend Developer",
+      "company_name": "Example Three",
+      "category": "Software Development",
+      "job_type": "Full-time",
+      "publication_date": "2026-10-03",
+      "candidate_required_location": "Europe",
+      "description": "<p>Work with the team to maintain a production backend service.</p>"
+    },
+    {
+      "id": 104,
+      "url": "https://remotive.com/remote-jobs/software-dev/short-four",
+      "title": "Short Description Job",
+      "company_name": "Example Four",
+      "candidate_required_location": "Worldwide",
+      "description": "<p>Too short</p>"
+    }
+  ]
+}

@@ -50,3 +50,7 @@ MAX_JOB_TEXT_CHARS = 1200
 
 # Jobs with a final score below this are not queued.
 MIN_SCORE_TO_QUEUE = 60
+
+# Public collector requests are intentionally limited to avoid overloading sources.
+MAX_RUNS_PER_DAY = 4
+MIN_SECONDS_BETWEEN_RUNS = 60

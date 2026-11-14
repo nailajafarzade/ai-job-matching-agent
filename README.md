@@ -26,12 +26,11 @@ explained.
 
 | # | Stage | Status |
 |---|-------|--------|
-| 1 | Manual intake + job analysis + matching | API done, tuning next |
-| 2 | CV selection + CV tailoring | planned |
-| 3 | Ollama + cover letter + reviewer | planned |
-| 4 | Dashboard + human approval + tracker | planned |
-| 5 | Automatic job collectors (RemoteOK, Remotive) | planned |
-| 6 | Application automation (only where allowed) | planned |
+| 1 | Foundation + job analysis + matching | done |
+| 2 | Automatic public API collectors | done |
+| 3 | CV selection + cover letter + reviewer | planned |
+| 4 | Human approval + tracker + dashboard | planned |
+| 5 | Manual application package + safe email + GitHub polish | planned |
 
 ## Stage 1 setup
 
@@ -70,6 +69,38 @@ Stage 1 endpoints:
 - `GET /profile` — show the active profile summary.
 - `POST /profile/reload` — load profile changes from `data/profile.yaml`.
 - `GET /health` — check API and matching runtime status.
+- `POST /collectors/{source}/run` — run `remotive` or `remoteok` (`search` and `limit` are optional).
+- `GET /collectors/runs` — list recent collector runs and their counts/errors.
+
+## Stage 2 collectors
+
+Collectors use the Remotive and RemoteOK public JSON APIs; they do not scrape
+HTML pages. Each job is passed through the same analysis and matching pipeline
+as a manually submitted job. Unclear remote-country eligibility is left for
+manual review, and duplicates are counted without saving another job.
+
+Run one collector from the project root:
+
+```bash
+python -m scripts.collect --source remotive --search "java" --limit 30
+python -m scripts.collect --source remoteok --search "java" --limit 30
+```
+
+The collector runner allows at most four runs per source in 24 hours and at
+least 60 seconds between runs of the same source. Each attempt, including a
+failed run, is recorded in `collector_runs`.
+
+RemoteOK requires a link back and attribution. Read their terms before using it.
+
+To run a collector daily, create a Windows Task Scheduler task with the project's
+`.venv\Scripts\python.exe` as the program, `-m scripts.collect --source remotive
+--search java --limit 30` as the arguments, and the project root as “Start in”.
+Create a separate task for RemoteOK if you want both sources. On cron-based
+systems, an example daily Remotive task is:
+
+```cron
+0 8 * * * /path/to/job-agent/.venv/bin/python -m scripts.collect --source remotive --search java --limit 30
+```
 
 ## Folders
 
@@ -77,6 +108,7 @@ Stage 1 endpoints:
 app/
   api/        HTTP endpoints
   analysis/   find skills, years, seniority in a job text
+  collectors/ public API clients, text/location/contact parsing and run limits
   db/         database models and session
   intake/     manual job input and text cleaning
   matching/   filters, embeddings, scorer

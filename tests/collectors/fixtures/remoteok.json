@@ -1,0 +1,39 @@
+[
+  {"legal": "RemoteOK API legal notice: read the terms and link back to RemoteOK."},
+  {
+    "id": "201",
+    "url": "https://remoteok.com/remote-jobs/java-backend-one",
+    "position": "Junior Java Backend Developer",
+    "company": "Example One",
+    "description": "<h2>Requirements</h2><ul><li>Java</li><li>Spring Boot</li></ul><p>Apply by sending your resume to careers@example.org.</p>",
+    "location": "USA Only",
+    "tags": ["java", "backend"]
+  },
+  {
+    "id": "202",
+    "url": "https://remoteok.com/remote-jobs/python-backend-two",
+    "position": "Python Backend Developer",
+    "company": "Example Two",
+    "description": "Build reliable APIs with Python and FastAPI for customer products.",
+    "location": "UTC-5 to UTC+1",
+    "tags": ["python", "backend"]
+  },
+  {
+    "id": "203",
+    "url": "https://remoteok.com/remote-jobs/short-three",
+    "position": "Short Description Job",
+    "company": "Example Three",
+    "description": "Too short",
+    "location": "Worldwide",
+    "tags": []
+  },
+  {
+    "id": "204",
+    "url": "https://remoteok.com/remote-jobs/java-backend-four",
+    "position": "Java Backend Developer",
+    "company": "Example Four",
+    "description": "Join our team to maintain backend services built with Java and PostgreSQL.",
+    "location": "Germany",
+    "tags": ["java"]
+  }
+]
