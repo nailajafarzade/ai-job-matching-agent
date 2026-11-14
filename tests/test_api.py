@@ -4,17 +4,19 @@ from pathlib import Path
 from shutil import copyfile
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.db.models import Application, ApplicationEvent
 from app.main import create_app
 from tests.fakes import HashingEmbedder
 
 
-def make_client(profile_path: Path | None = None) -> TestClient:
+def make_client(profile_path: Path | None = None, min_score: float = 0) -> TestClient:
     app = create_app(
         embedder=HashingEmbedder(),
         database_url="sqlite:///:memory:",
         profile_path=profile_path or Path(__file__).parent.parent / "data" / "profile.yaml",
-        min_score=0,
+        min_score=min_score,
     )
     return TestClient(app)
 
@@ -189,3 +191,84 @@ def test_broken_profile_reload_keeps_app_working(tmp_path):
         assert "UnknownSkill" in response.json()["detail"]
         assert client.get("/profile").json()["version"] == 3
         assert client.get("/health").status_code == 200
+
+
+def test_prepare_application_returns_cv_letter_issues_and_records_refresh_event():
+    with make_client() as client:
+        submitted = client.post("/jobs", json=good_job()).json()
+        job_id = submitted["job"]["id"]
+
+        first = client.post(f"/jobs/{job_id}/prepare")
+        assert first.status_code == 201
+        application = first.json()
+        assert application["status"] == "prepared"
+        assert application["cv_id"] == "java_backend"
+        assert application["cv_choice_reason"]
+        assert application["letter_text"]
+        assert "Kafka" not in application["letter_text"]
+        assert application["review_issues"] == []
+
+        second = client.post(f"/jobs/{job_id}/prepare")
+        assert second.status_code == 200
+        assert second.json()["id"] == application["id"]
+        fetched = client.get(f"/applications/{application['id']}")
+        assert fetched.status_code == 200
+        assert fetched.json()["letter_text"] == application["letter_text"]
+        assert fetched.json()["cv_choice_reason"] is None
+        assert client.get("/applications/999").status_code == 404
+
+        with client.app.state.session_factory() as session:
+            saved = session.get(Application, application["id"])
+            events = session.scalars(
+                select(ApplicationEvent)
+                .where(ApplicationEvent.application_id == saved.id)
+                .order_by(ApplicationEvent.id)
+            ).all()
+            assert [(event.from_status, event.to_status) for event in events] == [
+                (None, "prepared"),
+                ("prepared", "prepared"),
+            ]
+
+
+def test_prepare_rejects_rejected_and_below_threshold_jobs():
+    with make_client() as client:
+        rejected = client.post("/jobs", json=good_job(title="Senior Java Developer")).json()
+        response = client.post(f"/jobs/{rejected['job']['id']}/prepare")
+        assert response.status_code == 409
+        assert "rejected" in response.json()["detail"]
+
+    with make_client(min_score=101) as client:
+        below_threshold = client.post("/jobs", json=good_job()).json()
+        assert below_threshold["match"]["decision"] == "below_threshold"
+        response = client.post(f"/jobs/{below_threshold['job']['id']}/prepare")
+        assert response.status_code == 409
+        assert "below_threshold" in response.json()["detail"]
+
+
+def test_prepare_allows_needs_review_and_includes_warning():
+    with make_client() as client:
+        submitted = client.post(
+            "/jobs",
+            json=good_job(company="Unknown Eligibility Co", remote_work_eligibility="unknown", eligible_countries=[]),
+        ).json()
+        assert submitted["match"]["decision"] == "needs_review"
+
+        response = client.post(f"/jobs/{submitted['job']['id']}/prepare")
+
+        assert response.status_code == 201
+        assert any(issue["level"] == "warning" for issue in response.json()["review_issues"])
+
+
+def test_prepare_cannot_overwrite_application_after_status_changes():
+    with make_client() as client:
+        submitted = client.post("/jobs", json=good_job()).json()
+        prepared = client.post(f"/jobs/{submitted['job']['id']}/prepare").json()
+        with client.app.state.session_factory() as session:
+            application = session.get(Application, prepared["id"])
+            application.status = "approved"
+            session.commit()
+
+        response = client.post(f"/jobs/{submitted['job']['id']}/prepare")
+
+        assert response.status_code == 409
+        assert "status is 'prepared'" in response.json()["detail"]

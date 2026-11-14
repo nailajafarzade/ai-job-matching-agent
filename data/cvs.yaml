@@ -1,0 +1,13 @@
+cvs:
+  - id: java_backend # EXAMPLE, EDIT ME
+    file: data/cvs/java_backend.pdf
+    target_roles: [Java Backend Developer]
+    emphasis_skills: [Java, Spring Boot, PostgreSQL, Redis, Docker, REST API, Microservices]
+  - id: python_ai # EXAMPLE, EDIT ME
+    file: data/cvs/python_ai.pdf
+    target_roles: [AI Engineer Intern, Junior AI Engineer, Machine Learning Intern, Python Backend Developer]
+    emphasis_skills: [Python, FastAPI, Ollama, Prompt Engineering, Java, Spring Boot]
+  - id: fullstack # EXAMPLE, EDIT ME
+    file: data/cvs/fullstack.pdf
+    target_roles: [Full Stack Developer]
+    emphasis_skills: [JavaScript, TypeScript, React, HTML, CSS, Tailwind CSS, REST API]

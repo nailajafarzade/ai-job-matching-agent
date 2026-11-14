@@ -4,6 +4,7 @@ __pycache__/
 venv/
 .env
 *.db
+data/cvs/*.pdf
 .pytest_cache/
 .idea/
 .vscode/

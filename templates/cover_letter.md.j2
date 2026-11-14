@@ -1,0 +1,8 @@
+Dear hiring team,
+
+{{ candidate_sentence }} I am applying for the {{ title }} position at {{ company }}.
+{% if hands_on_matches %}My hands-on skills relevant to this role include {{ hands_on_matches | join(", ") }}.{% endif %}
+{% if project %}In {{ project.name }}, {% if project.role %}I worked as {{ project.role }}{% else %}I contributed{% endif %}{% if is_team_project %} as part of a team{% endif %}.{% endif %}
+{% if studied_matches %}I am also learning {{ studied_matches | join(" and ") }}.{% endif %}
+
+Thank you for considering my application.

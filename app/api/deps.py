@@ -5,6 +5,7 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from app.services.pipeline import JobPipeline
+from app.services.runtime import DocumentServices
 
 
 def get_db(request: Request) -> Iterator[Session]:
@@ -17,3 +18,7 @@ def get_db(request: Request) -> Iterator[Session]:
 
 def get_pipeline(request: Request) -> JobPipeline:
     return request.app.state.pipeline
+
+
+def get_documents(request: Request) -> DocumentServices:
+    return request.app.state.documents

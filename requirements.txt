@@ -8,3 +8,4 @@ sentence-transformers
 numpy
 pytest
 httpx
+jinja2

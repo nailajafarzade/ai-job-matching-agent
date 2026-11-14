@@ -31,6 +31,8 @@ def test_real_profile_loads(profile):
     assert profile.level_of("Kafka") is None
     assert [t.label for t in profile.texts] == ["summary", "MoneyQuest", "Virtual Student", "Voyanta", "skills"]
     assert profile.excluded_job_countries == ["India"]
+    assert profile.projects[0].tech_confirmed[0] == "Java"
+    assert profile.projects[-1].note.startswith("Team project")
 
 
 def test_loader_rejects_unknown_skill():

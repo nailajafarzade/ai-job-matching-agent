@@ -1,7 +1,7 @@
 # Job Agent
 
 An AI agent that helps with job search: it reads job posts, scores how well
-they fit my profile, and (in later stages) prepares CVs and letters.
+they fit my profile, and prepares a CV choice and cover letter for review.
 
 The decision logic is written by hand. It is simple and every score can be
 explained.
@@ -28,7 +28,7 @@ explained.
 |---|-------|--------|
 | 1 | Foundation + job analysis + matching | done |
 | 2 | Automatic public API collectors | done |
-| 3 | CV selection + cover letter + reviewer | planned |
+| 3 | CV selection + cover letter + reviewer | done |
 | 4 | Human approval + tracker + dashboard | planned |
 | 5 | Manual application package + safe email + GitHub polish | planned |
 
@@ -71,6 +71,8 @@ Stage 1 endpoints:
 - `GET /health` — check API and matching runtime status.
 - `POST /collectors/{source}/run` — run `remotive` or `remoteok` (`search` and `limit` are optional).
 - `GET /collectors/runs` — list recent collector runs and their counts/errors.
+- `POST /jobs/{id}/prepare` — select a registered CV and prepare a reviewed cover letter.
+- `GET /applications/{id}` — retrieve a prepared application.
 
 ## Stage 2 collectors
 
@@ -102,6 +104,28 @@ systems, an example daily Remotive task is:
 0 8 * * * /path/to/job-agent/.venv/bin/python -m scripts.collect --source remotive --search java --limit 30
 ```
 
+## Stage 3 application preparation
+
+`POST /jobs/{id}/prepare` is available for jobs whose latest match is `queued`
+or `needs_review`. It chooses a CV from `data/cvs.yaml`, writes a short letter
+from confirmed profile facts, and returns reviewer issues with the application.
+Repeated preparation refreshes the same application only while its status is
+`prepared`; it cannot overwrite a later human status. A `needs_review` job is
+prepared with a warning so its eligibility can be checked by a person.
+
+The three entries in `data/cvs.yaml` are examples marked `EXAMPLE, EDIT ME`.
+Update their target roles, emphasis skills, and PDF file paths to match the CVs
+you actually have. The loader checks skills and roles against the profile and
+vocabulary. Missing PDFs are warnings: add the real personal PDFs under
+`data/cvs/` when ready; PDF files are ignored by Git. The letter uses only
+profile-confirmed hands-on skills, labels studied skills as learning, and never
+copies missing job skills into its claims. Review the returned letter and
+issues yourself; this phase does not approve or send applications.
+
+Run the API as shown in Stage 1 setup, then submit and prepare a job using the
+endpoints above. The selected CV identifier and selection reason, letter, and
+review issues are returned by the prepare endpoint.
+
 ## Folders
 
 ```
@@ -109,13 +133,16 @@ app/
   api/        HTTP endpoints
   analysis/   find skills, years, seniority in a job text
   collectors/ public API clients, text/location/contact parsing and run limits
+  documents/  CV registry, fact selection, cover letters and reviewer
   db/         database models and session
   intake/     manual job input and text cleaning
   matching/   filters, embeddings, scorer
   profile/    loads and versions profile.yaml
   schemas/    Pydantic models
   services/   pipeline: intake -> analysis -> matching
-data/         profile.yaml, skills.yaml
+data/         profile.yaml, skills.yaml, editable cvs.yaml registry
+data/cvs/     personal CV PDFs (ignored by Git)
+templates/    cover-letter template
 tests/
 ```
 

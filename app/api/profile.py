@@ -3,7 +3,7 @@ import yaml
 from fastapi import APIRouter, HTTPException, Request
 
 from app.schemas.responses import ProfileSummary, ReloadResult
-from app.services.runtime import build_pipeline
+from app.services.runtime import build_documents, build_pipeline
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -34,8 +34,10 @@ def reload_profile(request: Request) -> ReloadResult:
             request.app.state.embedder,
             request.app.state.min_score,
         )
+        new_documents = build_documents(new_pipeline.matcher.profile, new_pipeline.matcher.vocabulary)
     except (OSError, ValueError, KeyError, TypeError, AttributeError, yaml.YAMLError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     request.app.state.pipeline = new_pipeline
+    request.app.state.documents = new_documents
     return ReloadResult(old_version=old_version, new_version=new_pipeline.matcher.profile.version)

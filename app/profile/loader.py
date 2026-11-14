@@ -30,6 +30,15 @@ class ProfileText:
 
 
 @dataclass(frozen=True)
+class ProfileProject:
+    name: str
+    role: str | None
+    text: str
+    tech_confirmed: list[str]
+    note: str | None = None
+
+
+@dataclass(frozen=True)
 class Profile:
     version: int
     skills: dict[str, str]                      # canonical name -> level
@@ -42,6 +51,8 @@ class Profile:
     remote_ok: bool
     require_country_eligibility: bool
     preferred_locations: list[str] = field(default_factory=list)
+    summary: str = ""
+    projects: list[ProfileProject] = field(default_factory=list)
 
     def level_of(self, skill: str) -> str | None:
         return self.skills.get(skill)
@@ -67,9 +78,19 @@ def parse_profile(data: dict, vocabulary: SkillVocabulary) -> Profile:
     if not roles:
         raise ValueError("target_roles is empty")
 
-    texts = [ProfileText("summary", " ".join(data["summary"].split()))]
-    for project in data.get("projects", []):
-        texts.append(ProfileText(project["name"], " ".join(project["text"].split())))
+    summary = " ".join(data["summary"].split())
+    projects = [
+        ProfileProject(
+            name=project["name"],
+            role=project.get("role"),
+            text=" ".join(project["text"].split()),
+            tech_confirmed=list(project.get("tech_confirmed", [])),
+            note=project.get("note"),
+        )
+        for project in data.get("projects", [])
+    ]
+    texts = [ProfileText("summary", summary)]
+    texts.extend(ProfileText(project.name, project.text) for project in projects)
     hands_on = [name for name, level in skills.items() if level == "hands_on"]
     texts.append(ProfileText("skills", "Skills: " + ", ".join(hands_on) + "."))
 
@@ -87,6 +108,8 @@ def parse_profile(data: dict, vocabulary: SkillVocabulary) -> Profile:
         remote_ok=bool(remote.get("ok", True)),
         require_country_eligibility=bool(remote.get("require_country_eligibility", True)),
         preferred_locations=list(prefs.get("preferred_locations", [])),
+        summary=summary,
+        projects=projects,
     )
 
 

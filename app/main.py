@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from sqlalchemy.orm import sessionmaker
 
 from app.api import collectors as collectors_api
+from app.api import applications as applications_api
 from app.api import jobs, profile
 from app.collectors.base import JobCollector
 from app.collectors.remoteok import RemoteOKCollector
@@ -15,7 +16,7 @@ from app.collectors.remotive import RemotiveCollector
 from app.config import DATABASE_URL, PROFILE_PATH
 from app.db.session import init_db, make_engine
 from app.matching.embeddings import Embedder, get_embedder
-from app.services.runtime import build_pipeline
+from app.services.runtime import build_documents, build_pipeline
 
 
 def create_app(
@@ -37,6 +38,10 @@ def create_app(
             runtime_app.state.profile_path = profile_path
             runtime_app.state.min_score = min_score
             runtime_app.state.pipeline = build_pipeline(profile_path, runtime_app.state.embedder, min_score)
+            runtime_app.state.documents = build_documents(
+                runtime_app.state.pipeline.matcher.profile,
+                runtime_app.state.pipeline.matcher.vocabulary,
+            )
             if collectors is None:
                 collector_client = httpx.Client()
                 runtime_app.state.collectors = {
@@ -54,6 +59,7 @@ def create_app(
     application = FastAPI(title="Job Agent", lifespan=lifespan)
     application.include_router(jobs.router)
     application.include_router(profile.router)
+    application.include_router(applications_api.router)
     application.include_router(collectors_api.router)
 
     @application.get("/health", summary="Check API and matching runtime health")

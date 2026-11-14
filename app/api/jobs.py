@@ -3,14 +3,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import get_db, get_pipeline
+from app.api.deps import get_db, get_documents, get_pipeline
 from app.db.models import Job, Match
+from app.schemas.application import ApplicationRead
 from app.schemas.analysis import JobAnalysisRead
 from app.schemas.enums import MatchDecision
 from app.schemas.job import JobCreate, JobRead
 from app.schemas.match import MatchRead
 from app.schemas.responses import JobResult
+from app.services.applications import JobNotFoundError, JobNotPreparableError, prepare
 from app.services.pipeline import JobPipeline, PipelineResult
+from app.services.runtime import DocumentServices
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -122,3 +125,27 @@ def rematch_job(
     if result is None:
         raise HTTPException(status_code=404, detail="Job not found")
     return _job_result(result, duplicate=False)
+
+
+@router.post(
+    "/{job_id}/prepare",
+    response_model=ApplicationRead,
+    summary="Prepare a CV choice and cover letter for a job",
+)
+def prepare_job_application(
+    job_id: int,
+    response: Response,
+    session: Session = Depends(get_db),
+    documents: DocumentServices = Depends(get_documents),
+) -> ApplicationRead:
+    try:
+        prepared = prepare(session, job_id, documents)
+    except JobNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except JobNotPreparableError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    response.status_code = status.HTTP_200_OK if not prepared.created else status.HTTP_201_CREATED
+    return ApplicationRead.model_validate(prepared.application).model_copy(
+        update={"cv_choice_reason": prepared.cv_choice.reason}
+    )
