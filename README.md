@@ -110,6 +110,27 @@ missing skills and the reason.
 | `jobs` | The raw job post, eligibility fields, `content_hash` (unique, for dedupe), status |
 | `job_analyses` | Required and nice-to-have skills, min years, seniority, one row per analyzer version |
 | `matches` | Decision, reasons, all score parts, matched and missing skills, explanation, profile version, matcher version, embedding model, weights used |
+| `collector_runs` | Counts and errors for each job collector run |
+| `applications` | One prepared application per job, including CV choice, letter, review issues and status |
+| `application_events` | Ordered application status changes and notes |
+
+## Database migrations
+
+Use Alembic to create or upgrade a database:
+
+```bash
+alembic upgrade head
+```
+
+For an existing `job_agent.db` created with `create_all`, mark the existing
+three-table schema as the baseline before applying newer migrations:
+
+```bash
+alembic stamp 0001_baseline
+alembic upgrade head
+```
+
+`init_db` still uses `create_all` for tests and simple local setup.
 
 Rejected jobs have no scores, only `reject_reasons`. Unknown remote eligibility
 gives `needs_review`, not a silent reject.
@@ -181,5 +202,5 @@ uses the real model and is marked `real_model`, so it only runs when selected.
 
 ## Job fields for remote eligibility
 
-`eligible_countries`, `remote_work_eligibility`, `location_restrictions`
-(added to the job schema when we build it).
+`eligible_countries`, `remote_work_eligibility`, and `location_restrictions`
+are stored with each job so unknown remote eligibility can be reviewed by hand.

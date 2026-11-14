@@ -40,3 +40,15 @@ class MatchDecision(str, Enum):
     needs_review = "needs_review"      # something is unknown (e.g. remote eligibility)
     below_threshold = "below_threshold"  # scored, but under MIN_SCORE_TO_QUEUE
     queued = "queued"                  # good enough to prepare an application
+
+
+class ApplicationStatus(str, Enum):
+    prepared = "prepared"
+    approved = "approved"
+    skipped = "skipped"
+    package_ready = "package_ready"
+    sent = "sent"
+    replied = "replied"
+    interview = "interview"
+    rejected = "rejected"
+    withdrawn = "withdrawn"

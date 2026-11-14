@@ -10,6 +10,7 @@ LONG_TEXT = "We are looking for a junior Java developer with Spring Boot."
 
 def test_job_create_defaults_and_strips():
     job = JobCreate(title="  Java Developer ", company=" Acme ", description=f"  {LONG_TEXT}  ", url="  ")
+    assert job.source == "manual"
     assert job.title == "Java Developer"
     assert job.company == "Acme"
     assert job.description == LONG_TEXT
@@ -17,6 +18,28 @@ def test_job_create_defaults_and_strips():
     assert job.remote_type == RemoteType.unknown
     assert job.remote_work_eligibility == RemoteEligibility.unknown
     assert job.eligible_countries == []
+
+
+def test_job_create_accepts_source_and_application_email():
+    job = JobCreate(
+        source=" remotive ",
+        title="Java Developer",
+        company="Acme",
+        description=LONG_TEXT,
+        apply_email=" apply@example.com ",
+    )
+    assert job.source == "remotive"
+    assert job.apply_email == "apply@example.com"
+
+
+def test_job_create_turns_empty_application_email_into_none():
+    job = JobCreate(title="Java Developer", company="Acme", description=LONG_TEXT, apply_email="  ")
+    assert job.apply_email is None
+
+
+def test_job_create_rejects_invalid_application_email():
+    with pytest.raises(ValidationError):
+        JobCreate(title="Java Developer", company="Acme", description=LONG_TEXT, apply_email="not-an-email")
 
 
 def test_job_create_rejects_short_description():

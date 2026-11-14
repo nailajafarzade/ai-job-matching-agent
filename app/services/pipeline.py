@@ -36,7 +36,8 @@ class JobPipeline:
             return self._existing_result(existing)
 
         job = Job(
-            source="manual",
+            source=data.source,
+            apply_email=data.apply_email,
             url=data.url,
             title=data.title,
             company=data.company,

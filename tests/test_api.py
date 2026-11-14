@@ -75,6 +75,17 @@ def test_health_submit_and_duplicate():
         assert len(client.get("/jobs").json()) == 1
 
 
+def test_submit_preserves_source_and_application_email():
+    with make_client() as client:
+        response = client.post(
+            "/jobs",
+            json=good_job(source="remotive", apply_email="apply@example.com"),
+        )
+        assert response.status_code == 201
+        assert response.json()["job"]["source"] == "remotive"
+        assert response.json()["job"]["apply_email"] == "apply@example.com"
+
+
 def test_rejected_unknown_remote_and_short_description():
     with make_client() as client:
         senior = good_job(title="Senior Java Developer")

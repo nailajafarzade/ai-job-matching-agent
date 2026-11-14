@@ -1,4 +1,4 @@
-"""Database tables: jobs, job_analyses, matches.
+"""Database tables for jobs, matching and applications.
 
 Design rules:
 - jobs holds the raw facts of a job post.
@@ -9,11 +9,11 @@ Design rules:
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
-from app.schemas.enums import JobStatus, MatchDecision, RemoteEligibility, RemoteType, Seniority
+from app.schemas.enums import ApplicationStatus, JobStatus, MatchDecision, RemoteEligibility, RemoteType, Seniority
 
 
 def _now() -> datetime:
@@ -25,6 +25,7 @@ class Job(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     source: Mapped[str] = mapped_column(String(50), default="manual")
+    apply_email: Mapped[str | None] = mapped_column(String(320))
     url: Mapped[str | None] = mapped_column(String(1000))
     title: Mapped[str] = mapped_column(String(300))
     company: Mapped[str] = mapped_column(String(300))
@@ -47,6 +48,9 @@ class Job(Base):
     )
     matches: Mapped[list["Match"]] = relationship(
         back_populates="job", cascade="all, delete-orphan", order_by="Match.id"
+    )
+    application: Mapped["Application | None"] = relationship(
+        back_populates="job", cascade="all, delete-orphan", uselist=False
     )
 
 
@@ -97,3 +101,52 @@ class Match(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     job: Mapped[Job] = relationship(back_populates="matches")
+
+
+class CollectorRun(Base):
+    __tablename__ = "collector_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(50))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    fetched: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    new_jobs: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    duplicates: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(Text)
+
+
+class Application(Base):
+    __tablename__ = "applications"
+    __table_args__ = (UniqueConstraint("job_id", name="uq_applications_job_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"))
+    cv_id: Mapped[str | None] = mapped_column(String(100))
+    letter_text: Mapped[str | None] = mapped_column(Text)
+    review_issues: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    status: Mapped[str] = mapped_column(
+        String(30), default=ApplicationStatus.prepared.value, server_default=ApplicationStatus.prepared.value
+    )
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    job: Mapped[Job] = relationship(back_populates="application")
+    events: Mapped[list["ApplicationEvent"]] = relationship(
+        back_populates="application", cascade="all, delete-orphan", order_by="ApplicationEvent.id"
+    )
+
+
+class ApplicationEvent(Base):
+    __tablename__ = "application_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("applications.id", ondelete="CASCADE"), index=True)
+    from_status: Mapped[str | None] = mapped_column(String(30))
+    to_status: Mapped[str] = mapped_column(String(30))
+    note: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    application: Mapped[Application] = relationship(back_populates="events")
