@@ -6,7 +6,7 @@ they fit my profile, and prepares a CV choice and cover letter for review.
 The decision logic is written by hand. It is simple and every score can be
 explained.
 
-## Principles
+## Design decisions
 
 - The agent never invents skills or experience. It only uses `data/profile.yaml`.
 - Skill level and project tech stack are kept separate. Using a skill does not
@@ -15,12 +15,26 @@ explained.
   A skill listed there is not mine unless it is also in `profile.yaml`.
 - Missing skills are shown as `missing_skills`. They are never added to the profile.
 - Synonyms are true synonyms only. Related technologies are separate skills.
-- Plain code does collecting, filtering and statuses. Models help only with
-  analysis and text.
+- Rules handle collecting, filtering, scoring, review, and statuses; there is no
+  paid LLM in the required workflow.
+- A local embedding model supports semantic matching, while application claims
+  come only from the confirmed profile and a plain template.
 - Every match result shows each part of the score and the reason.
 - Profile version and matcher version are saved with each result.
 - The embedding model is loaded once at app start.
 - A human approves every application.
+
+```mermaid
+flowchart LR
+    collect[Collect or submit] --> analyze[Analyze]
+    analyze --> filter[Hard filters]
+    filter --> score[Explainable score]
+    score --> prepare[Prepare CV and letter]
+    prepare --> review[Review]
+    review --> approval[Human approval]
+    approval --> delivery[Manual package or confirmed email]
+    delivery --> tracker[Application tracker]
+```
 
 ## Stages
 
@@ -30,9 +44,9 @@ explained.
 | 2 | Automatic public API collectors | done |
 | 3 | CV selection + cover letter + reviewer | done |
 | 4 | Human approval + tracker + dashboard | done |
-| 5 | Manual application package + safe email + GitHub polish | planned |
+| 5 | Manual application package + safe email + GitHub polish | done |
 
-## Stage 1 setup
+## Quick start
 
 ```bash
 python -m venv .venv
@@ -43,6 +57,18 @@ uvicorn app.main:app --reload
 
 The API listens at `http://127.0.0.1:8000`. Open Swagger at
 `http://127.0.0.1:8000/docs` to try the endpoints.
+
+For a local flow that needs no API key, internet access, or model download, run
+`python -m scripts.demo`. Tests use the same deterministic fake embedder.
+
+## Main commands
+
+- Start the API: `uvicorn app.main:app --reload`
+- Run tests: `python -m pytest`
+- Collect jobs: `python -m scripts.collect --source remotive --search java --limit 30`
+- Run the offline end-to-end demo: `python -m scripts.demo`
+- Evaluate labeled jobs: `python -m scripts.evaluate`
+- Try one saved job: `python -m scripts.try_match job.txt --title "Junior Java Developer" --remote --eligible Azerbaijan`
 
 ### API
 
@@ -134,6 +160,7 @@ match explanation and skills, and links to the original post. Open a job to
 prepare its application, review the CV choice and letter, approve or skip it,
 change its status, and view its status history. `/ui/stats` shows application
 counts, latest match decisions, average final score, and applications per week.
+Screenshot: add here.
 
 The JSON API provides:
 
@@ -162,6 +189,40 @@ Application status transitions are:
 
 Every status change is recorded in `application_events`. The application is
 never sent automatically; approval is a human decision.
+
+## Stage 5 sending and final polish
+
+After approval, **Prepare package** creates `outbox/<job_id>_<company>/` with
+the selected CV when available, `letter.txt`, `job.txt` (including the match
+explanation), and a `README.txt` with the original application link. The outbox
+is local and ignored by Git. If the example CV PDF is missing, the package is
+still created with a clear note; add the real PDF under `data/cvs/` before
+applying.
+
+Email is optional and disabled from real delivery by default. The dashboard's
+**Send email** action first opens a separate confirmation page showing the
+recipient, subject, letter, CV attachment, and exact mode. `EMAIL_DRY_RUN=true`
+creates an `.eml` file in `outbox/` without making an SMTP connection; change it
+to `false` only when intentionally enabling real delivery. Real email requires
+an approved application, a job application email, the selected CV PDF, and
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `EMAIL_FROM` from the
+environment or an ignored local `.env` file. `.env.example` lists the setting
+names without credentials. A maximum of 10 real emails is allowed in a rolling
+24-hour period, and a job cannot be sent twice.
+
+Run the end-to-end offline demonstration with `python -m scripts.demo`. It uses
+a fixed mocked collector, `HashingEmbedder`, a temporary SQLite database, and
+the manual package flow; it does not send an email or download a model.
+
+## Limits and roadmap
+
+This version does not scrape job-board HTML pages, automate browser actions, or
+fill application forms. Matching and analysis rules can be wrong on unusual job
+posts, and remote eligibility should be checked by a person. The roadmap is an
+optional local Ollama letter writer, more public API collectors, and
+Azerbaijani/Russian language support.
+
+Choose a license before publishing this repository.
 
 ## Folders
 

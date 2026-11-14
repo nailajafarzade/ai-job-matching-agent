@@ -1,0 +1,24 @@
+{% extends "base.html.j2" %}
+{% block title %}Confirm email · Job Agent{% endblock %}
+{% block content %}
+<p><a href="/ui/jobs/{{ job.id }}">← Back to job</a></p>
+<h2>Confirm application email</h2>
+<p><strong>Mode:</strong> {{ mode }}</p>
+{% if mode_value == "dry_run" %}
+<p>This creates a local .eml file and does not connect to an email server.</p>
+{% else %}
+<p class="error">This sends the application email now. Confirm only if you intend to send it.</p>
+{% endif %}
+<dl>
+    <dt>To</dt><dd>{{ job.apply_email }}</dd>
+    <dt>Subject</dt><dd>Application: {{ job.title }}</dd>
+    <dt>Attachment</dt><dd>{{ cv_entry.file if cv_entry else "Selected CV is not in the current registry" }}</dd>
+</dl>
+<h3>Message</h3>
+<p class="letter">{{ application.letter_text }}</p>
+<form method="post" action="/ui/applications/{{ application.id }}/email">
+    <input type="hidden" name="confirmed_mode" value="{{ mode_value }}">
+    <label class="checkbox"><input type="checkbox" name="confirmed" value="true" required> I reviewed this email and confirm the displayed mode</label>
+    <button type="submit">Confirm {{ mode }}</button>
+</form>
+{% endblock %}

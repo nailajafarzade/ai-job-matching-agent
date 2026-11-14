@@ -147,3 +147,58 @@ def test_dashboard_stats_page_renders_tables():
         assert "Applications by status" in response.text
         assert "Applications per week" in response.text
         assert "Average final score" in response.text
+
+
+def test_package_form_and_email_confirmation_are_explicit_and_mode_safe(monkeypatch, tmp_path):
+    monkeypatch.setattr("app.services.sending.OUTBOX_DIR", tmp_path / "outbox")
+    monkeypatch.setenv("EMAIL_DRY_RUN", "true")
+    monkeypatch.setenv("SMTP_PASSWORD", "ui-secret-must-not-render")
+    with make_client() as client:
+        submitted = client.post(
+            "/jobs",
+            json={
+                "title": "Junior Java Backend Developer",
+                "company": "Email Dashboard Co",
+                "url": "https://example.test/jobs/email",
+                "apply_email": "apply@example.test",
+                "description": (
+                    "We need a junior Java backend developer. Requirements include Java, Spring Boot, "
+                    "PostgreSQL and REST API. Build backend services with our team."
+                ),
+                "remote_type": "remote",
+                "remote_work_eligibility": "eligible",
+                "eligible_countries": ["Azerbaijan"],
+            },
+        )
+        assert submitted.status_code == 201
+        job_id = submitted.json()["job"]["id"]
+        client.post(f"/ui/jobs/{job_id}/prepare")
+        application_id = client.get("/applications").json()[0]["id"]
+        approved = client.post(
+            f"/ui/applications/{application_id}/approve",
+            data={},
+            follow_redirects=False,
+        )
+        assert approved.status_code == 303
+
+        confirmation = client.get(f"/ui/applications/{application_id}/email")
+        assert confirmation.status_code == 200
+        assert "DRY RUN" in confirmation.text
+        assert "apply@example.test" in confirmation.text
+        assert "I reviewed this email" in confirmation.text
+        assert "ui-secret-must-not-render" not in confirmation.text
+
+        monkeypatch.setenv("EMAIL_DRY_RUN", "false")
+        changed_mode = client.post(
+            f"/ui/applications/{application_id}/email",
+            data={"confirmed": "true", "confirmed_mode": "dry_run"},
+            follow_redirects=False,
+        )
+        assert changed_mode.status_code == 303
+        assert "Email mode changed" in client.get(changed_mode.headers["location"]).text
+        assert client.get(f"/applications/{application_id}").json()["status"] == "approved"
+
+        package = client.post(f"/ui/applications/{application_id}/package", follow_redirects=False)
+        assert package.status_code == 303
+        assert "Manual application package is ready" in client.get(package.headers["location"]).text
+        assert client.get(f"/applications/{application_id}").json()["status"] == "package_ready"

@@ -5,6 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 CV_REGISTRY_PATH = DATA_DIR / "cvs.yaml"
 TEMPLATES_DIR = BASE_DIR / "templates"
+OUTBOX_DIR = BASE_DIR / "outbox"
+ENV_FILE = BASE_DIR / ".env"
 
 PROFILE_PATH = DATA_DIR / "profile.yaml"
 SKILLS_PATH = DATA_DIR / "skills.yaml"
@@ -56,6 +58,7 @@ MIN_SCORE_TO_QUEUE = 60
 # Public collector requests are intentionally limited to avoid overloading sources.
 MAX_RUNS_PER_DAY = 4
 MIN_SECONDS_BETWEEN_RUNS = 60
+MAX_EMAILS_PER_DAY = 10
 
 MAX_LETTER_WORDS = 200
 CV_TITLE_BONUS = 1.0

@@ -51,6 +51,10 @@
         <button type="submit">Approve</button>
     </form>
     {% endif %}
+    {% if application and application.status == "approved" %}
+    <form method="post" action="/ui/applications/{{ application.id }}/package"><button type="submit">Prepare package</button></form>
+    {% if job.apply_email %}<form method="get" action="/ui/applications/{{ application.id }}/email"><button type="submit">Send email</button></form>{% endif %}
+    {% endif %}
     {% if application and application.status in ["prepared", "approved", "package_ready"] %}
     <form method="post" action="/ui/applications/{{ application.id }}/skip">
         <label>Note <input type="text" name="note"></label>

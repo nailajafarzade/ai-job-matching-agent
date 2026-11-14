@@ -14,6 +14,9 @@ from app.db.models import Application, Job, Match
 from app.documents.cv_selection import CvChoice, select_cv
 from app.schemas.enums import ApplicationStatus, MatchDecision
 from app.services.applications import JobNotFoundError, JobNotPreparableError, prepare
+from app.senders.base import SenderError
+from app.senders.settings import EmailSettings
+from app.services.sending import prepare_package, send_email
 from app.services.tracker import (
     ALLOWED,
     ApprovalRefusedError,
@@ -151,6 +154,72 @@ def dashboard_stats(request: Request, session: Session = Depends(get_db)) -> HTM
         name="stats.html.j2",
         context={"stats": get_stats(session)},
     )
+
+
+@router.get("/applications/{application_id}/email", response_class=HTMLResponse)
+def confirm_email(request: Request, application_id: int, session: Session = Depends(get_db)) -> HTMLResponse:
+    application = _get_application(session, application_id)
+    if application.status != ApplicationStatus.approved.value:
+        raise HTTPException(status_code=409, detail="Only approved applications can be emailed")
+    job = session.get(Job, application.job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if not job.apply_email:
+        raise HTTPException(status_code=409, detail="The job has no application email address")
+    settings = EmailSettings.from_env()
+    cv_entry = next(
+        (entry for entry in request.app.state.documents.cv_registry.entries if entry.id == application.cv_id),
+        None,
+    )
+    return templates.TemplateResponse(
+        request=request,
+        name="email_confirmation.html.j2",
+        context={
+            "application": application,
+            "job": job,
+            "mode": "DRY RUN" if settings.dry_run else "REAL",
+            "mode_value": "dry_run" if settings.dry_run else "real",
+            "cv_entry": cv_entry,
+        },
+    )
+
+
+@router.post("/applications/{application_id}/package")
+def prepare_application_package(
+    request: Request,
+    application_id: int,
+    session: Session = Depends(get_db),
+) -> RedirectResponse:
+    application = _get_application(session, application_id)
+    try:
+        result = prepare_package(session, application, request.app.state.documents)
+    except SenderError as exc:
+        session.rollback()
+        return _redirect_to_job(application.job_id, error=str(exc))
+    return _redirect_to_job(application.job_id, message=result.message)
+
+
+@router.post("/applications/{application_id}/email")
+def send_email_application(
+    request: Request,
+    application_id: int,
+    confirmed: bool = Form(default=False),
+    confirmed_mode: str = Form(),
+    session: Session = Depends(get_db),
+) -> RedirectResponse:
+    application = _get_application(session, application_id)
+    try:
+        settings = EmailSettings.from_env()
+        current_mode = "dry_run" if settings.dry_run else "real"
+        if not confirmed:
+            raise SenderError("Check the confirmation box before continuing")
+        if confirmed_mode != current_mode:
+            raise SenderError("Email mode changed; review the confirmation page again")
+        result = send_email(session, application, request.app.state.documents, settings=settings)
+    except (SenderError, ValueError) as exc:
+        session.rollback()
+        return _redirect_to_job(application.job_id, error=str(exc))
+    return _redirect_to_job(application.job_id, message=result.message)
 
 
 @router.post("/jobs/{job_id}/prepare")

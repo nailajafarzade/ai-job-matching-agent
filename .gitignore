@@ -5,6 +5,7 @@ venv/
 .env
 *.db
 data/cvs/*.pdf
+outbox/
 .pytest_cache/
 .idea/
 .vscode/

@@ -1,0 +1,1 @@
+"""Safe ways to prepare or send an application."""
